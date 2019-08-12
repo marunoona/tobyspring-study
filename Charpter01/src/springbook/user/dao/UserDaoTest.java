@@ -1,5 +1,7 @@
 package springbook.user.dao;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import springbook.user.domain.User;
 
 import java.sql.SQLException;
@@ -25,12 +27,18 @@ public class UserDaoTest {
         //UserDao userDao = new UserDao(connectionMaker);
 
         //3. 팩토리를 사용하도록 수정
-        UserDao userDao = new DaoFactory().userDao();
+        // 애플리케이션의 컴포넌트 역할을 하는 오브젝트와 애플리케이션의 구조를 결정하는 오브젝트 분리
+        //UserDao userDao = new DaoFactory().userDao();
+
+        //4. @Configuration이 붙은 자바 코드를 설정정보로 사용하기 위한 설정
+        ApplicationContext context = new AnnotationConfigApplicationContext(
+                DaoFactory.class);
+        UserDao userDao = context.getBean("userDao", UserDao.class);
 
         User user = new User();
-        user.setId("apple1");
-        user.setName("백설공주");
-        user.setPassword("a123");
+        user.setId("egg");
+        user.setName("달걀귀신");
+        user.setPassword("qwer");
 
         userDao.addUser(user);
         System.out.println(user.getId() +" 등록되었습니다.");
