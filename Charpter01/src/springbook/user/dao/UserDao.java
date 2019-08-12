@@ -9,14 +9,24 @@ import java.sql.SQLException;
 
 public class UserDao {
 
-    private  ConnectionMaker connectionMaker;
+    private ConnectionMaker connectionMaker;
 
-    public UserDao(ConnectionMaker connectionMaker){
+    public UserDao() {
+    }
+
+    // 생성자를 통한 의존관계 주입
+    public UserDao(ConnectionMaker connectionMaker) {
+        this.connectionMaker = connectionMaker;
+    }
+
+    // 수정자를 이용한 의존관계 주입
+
+    public void setConnectionMaker(ConnectionMaker connectionMaker) {
         this.connectionMaker = connectionMaker;
     }
 
     public void addUser(User user) throws ClassNotFoundException,
-            SQLException{
+            SQLException {
         Connection connection = this.connectionMaker.makeConnection();
 
         PreparedStatement ps = connection.prepareStatement(
@@ -31,7 +41,7 @@ public class UserDao {
     }
 
     public User getUser(String id) throws ClassNotFoundException,
-            SQLException{
+            SQLException {
         Connection connection = this.connectionMaker.makeConnection();
 
         PreparedStatement ps = connection.prepareStatement(

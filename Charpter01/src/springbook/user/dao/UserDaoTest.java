@@ -9,7 +9,7 @@ import java.sql.SQLException;
 /**
  * UserDaoTest는 UserDao와 ConnectionMaker 구현 클래스와의
  * 런타임 오브젝트 의존 관례를 설정하는 책임을 담당해야 한다.
- *
+ * <p>
  * UserDao가 사용할 ConnectionMaker 클래스를 선정하는 책임
  * 이후 이 역할을 Factory가 할 수 있도록 수정한다.
  */
@@ -41,12 +41,12 @@ public class UserDaoTest {
         user.setPassword("qwer");
 
         userDao.addUser(user);
-        System.out.println(user.getId() +" 등록되었습니다.");
+        System.out.println(user.getId() + " 등록되었습니다.");
 
         User user2 = userDao.getUser(user.getId());
         System.out.println(user.getName());
         System.out.println(user.getPassword());
 
-        System.out.println(user.getId() +" 정보 가져왔다.");
+        System.out.println(user.getId() + " 정보 가져왔다.");
     }
 }
