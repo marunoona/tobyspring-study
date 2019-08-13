@@ -2,6 +2,7 @@ package springbook.user.dao;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
 import springbook.user.domain.User;
 
 import java.sql.SQLException;
@@ -31,8 +32,11 @@ public class UserDaoTest {
         //UserDao userDao = new DaoFactory().userDao();
 
         //4. @Configuration이 붙은 자바 코드를 설정정보로 사용하기 위한 설정
-        ApplicationContext context = new AnnotationConfigApplicationContext(
-                DaoFactory.class);
+        /*ApplicationContext context = new AnnotationConfigApplicationContext(
+                DaoFactory.class);*/
+
+        //5. applicationContext.xml 사용하도록 변경
+        ApplicationContext context = new GenericXmlApplicationContext("applicationContext.xml");
         UserDao userDao = context.getBean("userDao", UserDao.class);
 
         User user = new User();
