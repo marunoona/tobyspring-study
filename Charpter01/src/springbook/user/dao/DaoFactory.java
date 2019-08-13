@@ -2,6 +2,9 @@ package springbook.user.dao;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.SimpleDriverDataSource;
+
+import javax.sql.DataSource;
 
 /**
  * 팩토리의 역할
@@ -26,18 +29,39 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DaoFactory {
 
+    /**
+     * 자바에서 DB커넥션을 가져오는 오브젝트의 기능을 추상화해서
+     * 비슷한 용도로 사용할 수 있게 만들어진 DataSource 이용
+     *
+     * @return
+     */
+    @Bean
+    public DataSource dataSource(){
+        SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
+
+        dataSource.setDriverClass(com.mysql.cj.jdbc.Driver.class);
+        dataSource.setUrl("jdbc:mysql://localhost:3306/testdb?serverTimezone=UTC");
+        dataSource.setUsername("marunoona");
+        dataSource.setPassword("maru1");
+
+        return dataSource;
+    }
+
     @Bean
     public UserDao userDao() {
         //ConnectionMaker connectionMaker = new DConnectionMaker();
         UserDao userDao = new UserDao();
         //수정자 메소드 DI를 사용
-        userDao.setConnectionMaker(connectionMaker());
+        userDao.setDataSource(dataSource());
         return userDao;
     }
 
     /**
      * ConnectionMaker의 구현 클래스를 결정하고
      * 오브젝트를 만드는 코드를 별로의 메소드로 분리함
+     *
+     *
+     * 위에 DataSource 사용하면 이 메소드 안씀
      *
      * @return
      */

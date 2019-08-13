@@ -36,9 +36,9 @@ public class UserDaoTest {
         UserDao userDao = context.getBean("userDao", UserDao.class);
 
         User user = new User();
-        user.setId("egg");
-        user.setName("달걀귀신");
-        user.setPassword("qwer");
+        user.setId("rabbit");
+        user.setName("토끼");
+        user.setPassword("12345");
 
         userDao.addUser(user);
         System.out.println(user.getId() + " 등록되었습니다.");
