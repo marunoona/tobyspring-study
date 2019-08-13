@@ -19,17 +19,36 @@ public class UserDao {
 
     public void addUser(User user) throws SQLException {
         //Connection connection = this.connectionMaker.makeConnection();
-        Connection connection = this.dataSource.getConnection();
+        Connection connection = null;
+        PreparedStatement ps = null;
+        try {
+            connection = this.dataSource.getConnection();
 
-        PreparedStatement ps = connection.prepareStatement(
-                "insert into users(id, name, password) values(?,?,?)");
-        ps.setString(1, user.getId());
-        ps.setString(2, user.getName());
-        ps.setString(3, user.getPassword());
+            ps = connection.prepareStatement(
+                    "insert into users(id, name, password) values(?,?,?)");
+            ps.setString(1, user.getId());
+            ps.setString(2, user.getName());
+            ps.setString(3, user.getPassword());
 
-        ps.executeUpdate();
-        ps.close();
-        connection.close();
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw e;
+        } finally {
+            if(ps != null){
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(connection != null){
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     public User getUser(String id) throws SQLException {
