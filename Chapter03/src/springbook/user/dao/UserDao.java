@@ -24,6 +24,7 @@ public class UserDao {
         try {
             connection = this.dataSource.getConnection();
 
+            //변하는 부분
             ps = connection.prepareStatement(
                     "insert into users(id, name, password) values(?,?,?)");
             ps.setString(1, user.getId());
@@ -34,14 +35,14 @@ public class UserDao {
         } catch (SQLException e) {
             throw e;
         } finally {
-            if(ps != null){
+            if (ps != null) {
                 try {
                     ps.close();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
             }
-            if(connection != null){
+            if (connection != null) {
                 try {
                     connection.close();
                 } catch (SQLException e) {
@@ -73,17 +74,42 @@ public class UserDao {
         return user;
     }
 
-    public void deleteAll() throws SQLException {
-        Connection c = dataSource.getConnection();
+    public void deleteAll() {
+        Connection c = null;
+        PreparedStatement ps = null;
 
-        PreparedStatement ps = c.prepareStatement("delete from users");
-        ps.executeUpdate();
+        try {
+            c = dataSource.getConnection();
 
-        ps.close();
-        c.close();
+            //변하는 부분 -> strategy 사용으로 변경
+            //ps = c.prepareStatement("delete from users");
+            StatementStrategy strategy = new DeleteAllStatement();
+            ps = strategy.makePreparedStatement(c);
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (c != null) {
+                try {
+                    c.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+
     }
 
-    public int getCount() throws SQLException  {
+    public int getCount() throws SQLException {
         Connection c = dataSource.getConnection();
 
         PreparedStatement ps = c.prepareStatement("select count(*) from users");

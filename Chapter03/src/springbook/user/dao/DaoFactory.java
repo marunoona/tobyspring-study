@@ -36,7 +36,7 @@ public class DaoFactory {
      * @return
      */
     @Bean
-    public DataSource dataSource(){
+    public DataSource dataSource() {
         SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
 
         dataSource.setDriverClass(com.mysql.cj.jdbc.Driver.class);

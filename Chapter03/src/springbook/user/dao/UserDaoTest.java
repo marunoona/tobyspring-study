@@ -44,10 +44,11 @@ public class UserDaoTest {
 
     /**
      * 중복 코드를 넣을 메소드
+     *
      * @Test가 실행되기 전에 먼저 실행되어야 하는 메소드를 정의
      */
     @Before
-    public void setUp(){
+    public void setUp() {
         //ApplicationContext context = new GenericXmlApplicationContext("applicationContext.xml");
         //this.userDao = context.getBean("userDao", UserDao.class);
 
