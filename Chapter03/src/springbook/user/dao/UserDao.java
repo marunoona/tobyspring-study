@@ -17,8 +17,16 @@ public class UserDao {
         this.dataSource = dataSource;
     }
 
+    //JdbcContext 사용
+    private JdbcContext jdbcContext;
+
+    //JdbcContext를 DI 받도록 만듬
+    public void setJdbcContext(JdbcContext jdbcContext) {
+        this.jdbcContext = jdbcContext;
+    }
+
     //jdbc try/catch/finally 컨텍스를 메소드로 분리
-    public void jdbcContextWithStatementStrategy(StatementStrategy stmt) throws
+    /*public void jdbcContextWithStatementStrategy(StatementStrategy stmt) throws
             SQLException{
         Connection c = null;
         PreparedStatement ps = null;
@@ -35,45 +43,23 @@ public class UserDao {
             if (ps != null) { try { ps.close(); } catch (SQLException e) {} }
             if (c != null) { try {c.close(); } catch (SQLException e) {} }
         }
-    }
+    }*/
 
     public void addUser(User user) throws SQLException {
-        //Connection connection = this.connectionMaker.makeConnection();
-//        Connection connection = null;
-//        PreparedStatement ps = null;
-//        try {
-//            connection = this.dataSource.getConnection();
-//
-//            //변하는 부분
-//            ps = connection.prepareStatement(
-//                    "insert into users(id, name, password) values(?,?,?)");
-//            ps.setString(1, user.getId());
-//            ps.setString(2, user.getName());
-//            ps.setString(3, user.getPassword());
-//
-//            ps.executeUpdate();
-//        } catch (SQLException e) {
-//            throw e;
-//        } finally {
-//            if (ps != null) {
-//                try {
-//                    ps.close();
-//                } catch (SQLException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            if (connection != null) {
-//                try {
-//                    connection.close();
-//                } catch (SQLException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
+        this.jdbcContext.workWithSatementStrategy(
+                new StatementStrategy() {
+                    @Override
+                    public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+                        PreparedStatement ps = c.prepareStatement(
+                                "insert into users(id, name, password) values(?,?,?)");
+                        ps.setString(1, user.getId());
+                        ps.setString(2, user.getName());
+                        ps.setString(3, user.getPassword());
 
-        //전략 패턴 사용으로 변경
-        StatementStrategy stmt = new AddStatement(user);
-        jdbcContextWithStatementStrategy(stmt);
+                        return ps;
+                    }
+                }
+        );
     }
 
     public User getUser(String id) throws SQLException {
@@ -99,11 +85,8 @@ public class UserDao {
     }
 
     public void deleteAll() throws SQLException{
-        /*StatementStrategy stmt = new DeleteAllStatement();
-        jdbcContextWithStatementStrategy(stmt);*/
-
-        //익명 내부 클래스를 적용
-        jdbcContextWithStatementStrategy(
+         //익명 내부 클래스를 적용
+        this.jdbcContext.workWithSatementStrategy(
                 new StatementStrategy() {
                     @Override
                     public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
