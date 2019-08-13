@@ -3,8 +3,13 @@ package springbook.user.dao;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
+
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import springbook.user.domain.User;
 
 import java.sql.SQLException;
@@ -20,8 +25,20 @@ import static org.junit.Assert.assertThat;
  * UserDao가 사용할 ConnectionMaker 클래스를 선정하는 책임
  * 이후 이 역할을 Factory가 할 수 있도록 수정한다.
  */
+
+//스프링의 테스트 컨텍스트 프레임워크의 Junit 확장 가능 지정
+@RunWith(SpringJUnit4ClassRunner.class)
+//테스트 컨텍스트가 자동으로 만들어줄 애플리케이션 컨텍스트 위치 지정
+@ContextConfiguration(locations = "/applicationContext.xml")
 public class UserDaoTest {
 
+    //테스트 오브젝트가 마늘어지고 나면
+    //스트링 테스트 컨텍스트에 의해 자동으로 값이 주입된다.
+    @Autowired
+    private ApplicationContext context;
+
+    //애플리케이션 컨텍스트가 갖고 잇는 빈을 DI받는 것
+    @Autowired
     private UserDao userDao;
 
     private User user1;
@@ -34,8 +51,8 @@ public class UserDaoTest {
      */
     @Before
     public void setUp(){
-        ApplicationContext context = new GenericXmlApplicationContext("applicationContext.xml");
-        this.userDao = context.getBean("userDao", UserDao.class);
+        //ApplicationContext context = new GenericXmlApplicationContext("applicationContext.xml");
+        //this.userDao = context.getBean("userDao", UserDao.class);
 
         this.user1 = new User("gyumee", "박성철", "springno1");
         this.user2 = new User("leegw700", "이길원", "springno2");
