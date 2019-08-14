@@ -68,15 +68,18 @@ public class UserDao {
     }
 
     public void deleteAll() throws SQLException{
-         //익명 내부 클래스를 적용
-        this.jdbcContext.workWithSatementStrategy(
+        /*this.jdbcContext.workWithSatementStrategy(
+                //익명 내부 클래스를 적용
+                //변하지 않는 콜백 클래스 정의와 오브젝트 생성할 부분
                 new StatementStrategy() {
                     @Override
                     public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
                         return c.prepareStatement("delete from users");
                     }
                 }
-        );
+        );*/
+        //변하지 않는 부분을 분리시킴
+        this.jdbcContext.executeSql("delete from users");
     }
 
     public int getCount() throws SQLException {

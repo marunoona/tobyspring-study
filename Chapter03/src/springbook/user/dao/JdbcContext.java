@@ -14,7 +14,7 @@ public class JdbcContext {
     }
 
     public void workWithSatementStrategy(StatementStrategy stmt) throws
-            SQLException{
+            SQLException {
         Connection c = null;
         PreparedStatement ps = null;
 
@@ -27,8 +27,29 @@ public class JdbcContext {
         } catch (SQLException e) {
             throw e;
         } finally {
-            if (ps != null) { try { ps.close(); } catch (SQLException e) {} }
-            if (c != null) { try {c.close(); } catch (SQLException e) {} }
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                }
+            }
+            if (c != null) {
+                try {
+                    c.close();
+                } catch (SQLException e) {
+                }
+            }
         }
+    }
+
+    public void executeSql(final String query) throws SQLException {
+        workWithSatementStrategy(
+                new StatementStrategy() {
+                    @Override
+                    public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+                        return c.prepareStatement(query);
+                    }
+                }
+        );
     }
 }
