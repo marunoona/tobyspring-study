@@ -1,14 +1,10 @@
 package springbook.user.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import springbook.user.domain.User;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -48,21 +44,21 @@ public class UserDao {
             };
 
     public void addUser(final User user) throws SQLException {
-//        this.jdbcContext.workWithSatementStrategy(
-//                new StatementStrategy() {
-//                    @Override
-//                    public PreparedStatement makePreparedStatement(Connection c) throws
-//                    SQLException {
-//                        PreparedStatement ps = c.prepareStatement(
-//                                "insert into users(id, name, password) values(?,?,?)");
-//                        ps.setString(1, user.getId());
-//                        ps.setString(2, user.getName());
-//                        ps.setString(3, user.getPassword());
-//
-//                        return ps;
-//                    }
-//                }
-//        );
+        /*this.jdbcContext.workWithSatementStrategy(
+                new StatementStrategy() {
+                    @Override
+                    public PreparedStatement makePreparedStatement(Connection c) throws
+                    SQLException {
+                        PreparedStatement ps = c.prepareStatement(
+                                "insert into users(id, name, password) values(?,?,?)");
+                        ps.setString(1, user.getId());
+                        ps.setString(2, user.getName());
+                        ps.setString(3, user.getPassword());
+
+                        return ps;
+                    }
+                }
+        );*/
 
         //JdbcTemplate 사용
         this.jdbcTemplate.update("insert into users(id, name, password) values(?,?,?)",
@@ -70,25 +66,27 @@ public class UserDao {
     }
 
     public User getUser(String id) throws SQLException {
-        //Connection connection = this.connectionMaker.makeConnection();
-//        Connection connection = this.dataSource.getConnection();
-//
-//        PreparedStatement ps = connection.prepareStatement(
-//                "select * from users where id = ?");
-//        ps.setString(1, id);
-//
-//        ResultSet rs = ps.executeQuery();
-//        rs.next();
-//        User user = new User();
-//        user.setId(rs.getString("id"));
-//        user.setName(rs.getString("name"));
-//        user.setPassword(rs.getString("password"));
-//
-//        rs.close();
-//        ps.close();
-//        connection.close();
-//
-//        return user;
+        /*//Connection connection = this.connectionMaker.makeConnection();
+        Connection connection = this.dataSource.getConnection();
+
+        PreparedStatement ps = connection.prepareStatement(
+                "select * from users where id = ?");
+        ps.setString(1, id);
+
+        ResultSet rs = ps.executeQuery();
+        rs.next();
+        User user = new User();
+        user.setId(rs.getString("id"));
+        user.setName(rs.getString("name"));
+        user.setPassword(rs.getString("password"));
+
+        rs.close();
+        ps.close();
+        connection.close();
+
+        return user;*/
+
+        //JdbcTemplate 사용
         return this.jdbcTemplate.queryForObject("select * from users where id = ?",
                 new Object[]{id}, this.rowMapper);
     }
