@@ -4,9 +4,9 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 						http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <bean id="jdbcContext" class="springbook.user.dao.JdbcContext">
-        <property name="dataSource" ref="dataSource"/>
-    </bean>
+    <!--<bean id="jdbcContext" class="springbook.user.dao.JdbcContext">-->
+        <!--<property name="dataSource" ref="dataSource"/>-->
+    <!--</bean>-->
 
     <bean id="dataSource"
           class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
@@ -18,6 +18,6 @@
 
     <bean id="userDao" class="springbook.user.dao.UserDao">
         <property name="dataSource" ref="dataSource"/>
-        <property name="jdbcContext" ref="jdbcContext"/>
+        <!--<property name="jdbcContext" ref="jdbcContext"/>-->
     </bean>
 </beans>

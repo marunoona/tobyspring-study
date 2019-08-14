@@ -12,38 +12,21 @@ public class UserDao {
 
     private DataSource dataSource;
 
-    // 수정자를 이용한 의존관계 주입 - datasource 사용
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
     //JdbcContext 사용
     private JdbcContext jdbcContext;
 
     //JdbcContext를 DI 받도록 만듬
-    public void setJdbcContext(JdbcContext jdbcContext) {
+    /*public void setJdbcContext(JdbcContext jdbcContext) {
         this.jdbcContext = jdbcContext;
-    }
-
-    //jdbc try/catch/finally 컨텍스를 메소드로 분리
-    /*public void jdbcContextWithStatementStrategy(StatementStrategy stmt) throws
-            SQLException{
-        Connection c = null;
-        PreparedStatement ps = null;
-
-        try {
-            c = dataSource.getConnection();
-
-            ps = stmt.makePreparedStatement(c);
-
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw e;
-        } finally {
-            if (ps != null) { try { ps.close(); } catch (SQLException e) {} }
-            if (c != null) { try {c.close(); } catch (SQLException e) {} }
-        }
     }*/
+
+    // 수정자를 이용한 의존관계 주입 - datasource 사용
+    // 수정자 메소드이면서 JdbcContext에 대한 생성, DI 작업을 동시에 수행
+    public void setDataSource(DataSource dataSource) {
+        this.jdbcContext = new JdbcContext();   //JdbcContext 생성(IoC)
+        this.jdbcContext.setDataSource(dataSource);     //의존 오브젝트 주입(DI)
+        this.dataSource = dataSource;   //아직 JdbcContext를 적용하지 않은 메소드를 위해 저장
+    }
 
     public void addUser(User user) throws SQLException {
         this.jdbcContext.workWithSatementStrategy(
