@@ -11,6 +11,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import springbook.user.domain.User;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -102,5 +103,37 @@ public class UserDaoTest {
 
         userDao.addUser(user3);
         assertThat(userDao.getCount(), CoreMatchers.is(3));
+    }
+
+    @Test
+    public void getAll() throws SQLException  {
+        userDao.deleteAll();
+
+        List<User> users0 = userDao.getAll();
+        assertThat(users0.size(), CoreMatchers.is(0));
+
+        userDao.addUser(user1); // Id: gyumee
+        List<User> users1 = userDao.getAll();
+        assertThat(users1.size(), CoreMatchers.is(1));
+        checkSameUser(user1, users1.get(0));
+
+        userDao.addUser(user2); // Id: leegw700
+        List<User> users2 = userDao.getAll();
+        assertThat(users2.size(), CoreMatchers.is(2));
+        checkSameUser(user1, users2.get(0));
+        checkSameUser(user2, users2.get(1));
+
+        userDao.addUser(user3); // Id: bumjin
+        List<User> users3 = userDao.getAll();
+        assertThat(users3.size(), CoreMatchers.is(3));
+        checkSameUser(user3, users3.get(0));
+        checkSameUser(user1, users3.get(1));
+        checkSameUser(user2, users3.get(2));
+    }
+
+    private void checkSameUser(User user1, User user2) {
+        assertThat(user1.getId(), CoreMatchers.is(user2.getId()));
+        assertThat(user1.getName(), CoreMatchers.is(user2.getName()));
+        assertThat(user1.getPassword(), CoreMatchers.is(user2.getPassword()));
     }
 }
