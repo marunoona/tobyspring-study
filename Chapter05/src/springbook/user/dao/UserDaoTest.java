@@ -12,6 +12,7 @@ import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
 import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import springbook.user.domain.Level;
 import springbook.user.domain.User;
 
 import javax.sql.DataSource;
@@ -51,9 +52,9 @@ public class UserDaoTest {
      */
     @Before
     public void setUp() {
-        this.user1 = new User("gyumee", "박성철", "springno1");
-        this.user2 = new User("leegw700", "이길원", "springno2");
-        this.user3 = new User("bumjin", "박범진", "springno3");
+        this.user1 = new User("gyumee", "박성철", "springno1", Level.BASIC, 1, 0);
+        this.user2 = new User("leegw700", "이길원", "springno2", Level.SILVER, 55, 10);
+        this.user3 = new User("bumjin", "박범진", "springno3", Level.GOLD, 100, 40);
     }
 
     @Test
@@ -66,18 +67,16 @@ public class UserDaoTest {
         assertThat(userDao.getCount(), is(2));
 
         User userget1 = userDao.getUser(user1.getId());
-        assertThat(userget1.getName(), CoreMatchers.is(user1.getName()));
-        assertThat(userget1.getPassword(), CoreMatchers.is(user1.getPassword()));
+        checkSameUser(userget1, user1);
 
         User userget2 = userDao.getUser(user2.getId());
-        assertThat(userget2.getName(), CoreMatchers.is(user2.getName()));
-        assertThat(userget2.getPassword(), CoreMatchers.is(user2.getPassword()));
+        checkSameUser(userget2, user2);
     }
 
     @Test(expected = EmptyResultDataAccessException.class)
-    public void getUserFailure() throws SQLException {
+    public void getUserFailure() {
         userDao.deleteAll();
-        assertThat(userDao.getCount(), CoreMatchers.is(0));
+        assertThat(userDao.getCount(), is(0));
 
         userDao.getUser("unknown_id");
     }
@@ -85,16 +84,16 @@ public class UserDaoTest {
     @Test
     public void count() {
         userDao.deleteAll();
-        assertThat(userDao.getCount(), CoreMatchers.is(0));
+        assertThat(userDao.getCount(), is(0));
 
         userDao.addUser(user1);
-        assertThat(userDao.getCount(), CoreMatchers.is(1));
+        assertThat(userDao.getCount(), is(1));
 
         userDao.addUser(user2);
-        assertThat(userDao.getCount(), CoreMatchers.is(2));
+        assertThat(userDao.getCount(), is(2));
 
         userDao.addUser(user3);
-        assertThat(userDao.getCount(), CoreMatchers.is(3));
+        assertThat(userDao.getCount(), is(3));
     }
 
     @Test
@@ -102,34 +101,54 @@ public class UserDaoTest {
         userDao.deleteAll();
 
         List<User> users0 = userDao.getAllUsers();
-        assertThat(users0.size(), CoreMatchers.is(0));
+        assertThat(users0.size(), is(0));
 
         userDao.addUser(user1);
         List<User> users1 = userDao.getAllUsers();
-        assertThat(users1.size(), CoreMatchers.is(1));
+        assertThat(users1.size(), is(1));
         checkSameUser(user1, users1.get(0));
 
         userDao.addUser(user2);
         List<User> users2 = userDao.getAllUsers();
-        assertThat(users2.size(), CoreMatchers.is(2));
+        assertThat(users2.size(), is(2));
         checkSameUser(user1, users2.get(0));
         checkSameUser(user2, users2.get(1));
 
         userDao.addUser(user3);
         List<User> users3 = userDao.getAllUsers();
-        assertThat(users3.size(), CoreMatchers.is(3));
+        assertThat(users3.size(), is(3));
         checkSameUser(user3, users3.get(0));
         checkSameUser(user1, users3.get(1));
         checkSameUser(user2, users3.get(2));
     }
 
-    private void checkSameUser(User user1, User user2) {
-        assertThat(user1.getId(), CoreMatchers.is(user2.getId()));
-        assertThat(user1.getName(), CoreMatchers.is(user2.getName()));
-        assertThat(user1.getPassword(), CoreMatchers.is(user2.getPassword()));
+    @Test
+    public void update() {
+        userDao.deleteAll();
+
+        userDao.addUser(user1);
+
+        user1.setName("강미나");
+        user1.setPassword("rkdalsk123");
+        user1.setLevel(Level.GOLD);
+        user1.setLogin(1000);
+        user1.setRecommend(999);
+        userDao.updateUser(user1);
+
+        User user1Update = userDao.getUser(user1.getId());
+        checkSameUser(user1Update, user1);
     }
 
-    @Test(expected= DuplicateKeyException.class)
+    private void checkSameUser(User user1, User user2) {
+        assertThat(user1.getId(), is(user2.getId()));
+        assertThat(user1.getName(), is(user2.getName()));
+        assertThat(user1.getPassword(), is(user2.getPassword()));
+        assertThat(user1.getLevel(), is(user2.getLevel()));
+        assertThat(user1.getLogin(), is(user2.getLogin()));
+        assertThat(user1.getRecommend(), is(user2.getRecommend()));
+    }
+
+    @Test(expected = DuplicateKeyException.class)
     public void duplciateKey() {
         userDao.deleteAll();
 
@@ -144,9 +163,8 @@ public class UserDaoTest {
         try {
             userDao.addUser(user1);
             userDao.addUser(user1);
-        }
-        catch(DuplicateKeyException ex) {
-            SQLException sqlEx = (SQLException)ex.getCause();
+        } catch (DuplicateKeyException ex) {
+            SQLException sqlEx = (SQLException) ex.getCause();
             SQLExceptionTranslator set = new SQLErrorCodeSQLExceptionTranslator(this.dataSource);
             DataAccessException transEx = set.translate(null, null, sqlEx);
             assertThat(transEx, CoreMatchers.is(DuplicateKeyException.class));

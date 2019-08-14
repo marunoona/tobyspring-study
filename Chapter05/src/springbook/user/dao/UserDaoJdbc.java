@@ -2,6 +2,7 @@ package springbook.user.dao;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import springbook.user.domain.Level;
 import springbook.user.domain.User;
 
 import javax.sql.DataSource;
@@ -25,14 +26,21 @@ public class UserDaoJdbc implements UserDao {
                     user.setId(resultSet.getString("id"));
                     user.setName(resultSet.getString("name"));
                     user.setPassword(resultSet.getString("password"));
+                    user.setLevel(Level.valueOf(resultSet.getInt("level")));
+                    user.setLogin(resultSet.getInt("login"));
+                    user.setRecommend(resultSet.getInt("recommend"));
                     return user;
                 }
             };
 
     public void addUser(final User user) {
         //JdbcTemplate 사용
-        this.jdbcTemplate.update("insert into users(id, name, password) values(?,?,?)",
-                user.getId(), user.getName(), user.getPassword());
+        this.jdbcTemplate.update(
+                "insert into users(id, name, password, level, login, recommend) " +
+                        "values(?,?,?,?,?,?)",
+                user.getId(), user.getName(), user.getPassword(), user.getLevel().intValue(),
+                user.getLogin(), user.getRecommend()
+        );
     }
 
     public User getUser(String id) {
@@ -54,5 +62,13 @@ public class UserDaoJdbc implements UserDao {
     public int getCount() {
         //JdbcTemplate 사용
         return this.jdbcTemplate.queryForInt("select count(*) from users");
+    }
+
+    @Override
+    public void updateUser(User user) {
+        this.jdbcTemplate.update(
+                "update users set name = ?, password = ?, level = ?, login = ?," +
+                        "recommend = ? where id = ?", user.getName(), user.getPassword(),
+                user.getLevel().intValue(), user.getLogin(), user.getRecommend(), user.getId());
     }
 }
