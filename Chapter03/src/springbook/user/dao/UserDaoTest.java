@@ -60,7 +60,7 @@ public class UserDaoTest {
 
 
     @Test
-    public void addAndGetTest() throws SQLException {
+    public void addAndGetTest() {
 //        ApplicationContext context = new GenericXmlApplicationContext("applicationContext.xml");
 //        UserDao userDao = context.getBean("userDao", UserDao.class);
 //
@@ -84,7 +84,7 @@ public class UserDaoTest {
     }
 
     @Test
-    public void count() throws SQLException {
+    public void count() {
 //        ApplicationContext context = new GenericXmlApplicationContext("applicationContext.xml");
 //
 //        UserDao userDao = context.getBean("userDao", UserDao.class);
@@ -106,24 +106,24 @@ public class UserDaoTest {
     }
 
     @Test
-    public void getAll() throws SQLException  {
+    public void getAll() {
         userDao.deleteAll();
 
         List<User> users0 = userDao.getAll();
         assertThat(users0.size(), CoreMatchers.is(0));
 
-        userDao.addUser(user1); // Id: gyumee
+        userDao.addUser(user1);
         List<User> users1 = userDao.getAll();
         assertThat(users1.size(), CoreMatchers.is(1));
         checkSameUser(user1, users1.get(0));
 
-        userDao.addUser(user2); // Id: leegw700
+        userDao.addUser(user2);
         List<User> users2 = userDao.getAll();
         assertThat(users2.size(), CoreMatchers.is(2));
         checkSameUser(user1, users2.get(0));
         checkSameUser(user2, users2.get(1));
 
-        userDao.addUser(user3); // Id: bumjin
+        userDao.addUser(user3);
         List<User> users3 = userDao.getAll();
         assertThat(users3.size(), CoreMatchers.is(3));
         checkSameUser(user3, users3.get(0));

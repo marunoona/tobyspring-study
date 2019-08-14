@@ -43,7 +43,7 @@ public class UserDao {
                 }
             };
 
-    public void addUser(final User user) throws SQLException {
+    public void addUser(final User user) {
         /*this.jdbcContext.workWithSatementStrategy(
                 new StatementStrategy() {
                     @Override
@@ -65,7 +65,7 @@ public class UserDao {
                 user.getId(), user.getName(), user.getPassword());
     }
 
-    public User getUser(String id) throws SQLException {
+    public User getUser(String id) {
         /*//Connection connection = this.connectionMaker.makeConnection();
         Connection connection = this.dataSource.getConnection();
 
@@ -91,7 +91,7 @@ public class UserDao {
                 new Object[]{id}, this.rowMapper);
     }
 
-    public void deleteAll() throws SQLException {
+    public void deleteAll() {
         /*this.jdbcContext.workWithSatementStrategy(
                 //익명 내부 클래스를 적용
                 //변하지 않는 콜백 클래스 정의와 오브젝트 생성할 부분
@@ -111,7 +111,7 @@ public class UserDao {
         this.jdbcTemplate.update("delete from users");
     }
 
-    public int getCount() throws SQLException {
+    public int getCount() {
         //JdbcTemplate 사용
         return this.jdbcTemplate.queryForInt("select count(*) from users");
     }
