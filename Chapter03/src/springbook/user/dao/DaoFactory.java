@@ -47,12 +47,12 @@ public class DaoFactory {
         return dataSource;
     }
 
-    @Bean
+    /*@Bean
     public UserDao userDao() {
         //ConnectionMaker connectionMaker = new DConnectionMaker();
         UserDao userDao = new UserDao();
         //수정자 메소드 DI를 사용
         userDao.setDataSource(dataSource());
         return userDao;
-    }
+    }*/
 }
