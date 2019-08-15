@@ -23,6 +23,21 @@ public class User {
         this.recommend = recommend;
     }
 
+    /**
+     * User의 내부 정보가 변경되는 것을
+     * User 스스로 다루도록 하기 위한 메소드
+     * UserService가 일일이 레벨 업그레이드 시에 User의 어떤 필드를 수정하는
+     * 로직을 갖고있디 보다는 User에게 레벨 업그레이드를 해야하니
+     * 정보를 변경하라고 요청하는 편이 낫기 때문이다.
+     */
+    public void upgradeLevel() {
+        Level nextLevel = this.level.nextLevel();
+        if (nextLevel == null)
+            throw new IllegalArgumentException(this.level + "은 업그레이드 불가능");
+        else
+            this.level = nextLevel;
+    }
+
     public String getId() {
         return id;
     }
