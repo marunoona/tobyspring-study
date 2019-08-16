@@ -1,5 +1,7 @@
 package springbook.user.service;
 
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -23,7 +25,10 @@ public class UserService {
         this.transactionManager = transactionManager;
     }
 
-
+    private MailSender mailSender;
+    public void setMailSender(MailSender mailSender) {
+        this.mailSender = mailSender;
+    }
 
     public void upgradeLevels() {
         //DI받은 트랜잭션 매니저를 공유해서 사용한다.
@@ -74,6 +79,16 @@ public class UserService {
     protected void upgradeLevel(User user) {
         user.upgradeLevel();
         userDao.updateUser(user);
+        sendUpgradedEmail(user);
+    }
+
+    private void sendUpgradedEmail(User user){
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(user.getEmail());
+        mailMessage.setFrom("admin@marunoona.org");
+        mailMessage.setSubject("Upgrade 안내");
+        mailMessage.setText("사용자님의 등급 : "+user.getLevel().name());
+        this.mailSender.send(mailMessage);
     }
 
     public void add(User user) {
