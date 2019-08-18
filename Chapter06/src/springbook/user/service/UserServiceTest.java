@@ -21,20 +21,23 @@ import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static springbook.user.service.UserService.MIN_LOGCOUNT_FOR_SILVER;
-import static springbook.user.service.UserService.MIN_RECCOMEND_FOR_GOLD;
+import static org.junit.Assert.fail;
+import static springbook.user.service.UserServiceImpl.MIN_LOGCOUNT_FOR_SILVER;
+import static springbook.user.service.UserServiceImpl.MIN_RECCOMEND_FOR_GOLD;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "/applicationContext.xml")
 public class UserServiceTest {
     @Autowired
-    private UserService userService;
+    UserService userService;
     @Autowired
-    private UserDao userDao;
+    UserDao userDao;
     @Autowired
-    PlatformTransactionManager transactionManager;
+    UserServiceImpl userServiceImpl;
     @Autowired
     MailSender mailSender;
+    @Autowired
+    PlatformTransactionManager transactionManager;
 
     List<User> users;    // test fixture
 
@@ -59,21 +62,28 @@ public class UserServiceTest {
     @Test
     public void upgradeLevels() {
         userDao.deleteAll();
-        for (User user : users)
-            userDao.addUser(user);
+        for (User user : users) userDao.addUser(user);
+
+        //메일 발송 결과를 테스트할 수 있도록 목 오브젝트를 만들어
+        //UserService의 의존 오브젝트로 주입해준다.
+        MockMailSender mockMailSender = new MockMailSender();
+        userServiceImpl.setMailSender(mockMailSender);
+
+        //업그레이드 테스트. 메일 발송이 일어나면
+        //MockMailSender 오브젝트의 리스트에 그 결과가 저장된다.
         userService.upgradeLevels();
-
-        /*checkLevelUpgraded(users.get(0), Level.BASIC);
-        checkLevelUpgraded(users.get(1), Level.SILVER);
-        checkLevelUpgraded(users.get(2), Level.SILVER);
-        checkLevelUpgraded(users.get(3), Level.GOLD);
-        checkLevelUpgraded(users.get(4), Level.GOLD);*/
-
         checkLevelUpgraded(users.get(0), false);
         checkLevelUpgraded(users.get(1), true);
         checkLevelUpgraded(users.get(2), false);
         checkLevelUpgraded(users.get(3), true);
         checkLevelUpgraded(users.get(4), false);
+
+        //목 오브젝트에 저장된 메일 수신자 목록을 가져와서
+        //업그레이드 대상과 일치하는지 확인한다.
+        List<String> request = mockMailSender.getRequest();
+        assertThat(request.size(), is(2));
+        assertThat(request.get(0), is(users.get(1).getEmail()));
+        assertThat(request.get(1), is(users.get(3).getEmail()));
     }
 
     @Test
@@ -117,51 +127,28 @@ public class UserServiceTest {
     @Test
     @DirtiesContext
     public void upgradeAllOrNothing() {
-        /*UserService testUserService = new TestUserService(users.get(3).getId());
+        TestUserService testUserService = new TestUserService(users.get(3).getId());
         testUserService.setUserDao(this.userDao);
-        testUserService.setTransactionManager(this.transactionManager);
         testUserService.setMailSender(this.mailSender);
+
+        UserServiceTx txUserService = new UserServiceTx();
+        txUserService.setTransactionManager(transactionManager);
+        txUserService.setUserService(testUserService);
 
         userDao.deleteAll();
         for (User user : users) userDao.addUser(user);
 
-        MockMailSender mockMailSender = new MockMailSender();
-        userService.setMailSender(mockMailSender);
         try {
-            testUserService.upgradeLevels();
+            txUserService.upgradeLevels();
             fail("TestUserServiceException expected");
         } catch (TestUserServiceException e) {
         }
 
-        checkLevelUpgraded(users.get(1), false);*/
-
-        userDao.deleteAll();
-        for (User user : users) userDao.addUser(user);
-
-        //메일 발송 결과를 테스트할 수 있도록 목 오브젝트를 만들어
-        //UserService의 의존 오브젝트로 주입해준다.
-        MockMailSender mockMailSender = new MockMailSender();
-        userService.setMailSender(mockMailSender);
-
-        //업그레이드 테스트. 메일 발송이 일어나면
-        //MockMailSender 오브젝트의 리스트에 그 결과가 저장된다.
-        userService.upgradeLevels();
-        checkLevelUpgraded(users.get(0), false);
-        checkLevelUpgraded(users.get(1), true);
-        checkLevelUpgraded(users.get(2), false);
-        checkLevelUpgraded(users.get(3), true);
-        checkLevelUpgraded(users.get(4), false);
-
-        //목 오브젝트에 저장된 메일 수신자 목록을 가져와서
-        //업그레이드 대상과 일치하는지 확인한다.
-        List<String> request = mockMailSender.getRequest();
-        assertThat(request.size(), is(2));
-        assertThat(request.get(0), is(users.get(1).getEmail()));
-        assertThat(request.get(1), is(users.get(3).getEmail()));
+        checkLevelUpgraded(users.get(1), false);
     }
 
 
-    static class TestUserService extends UserService {
+    static class TestUserService extends UserServiceImpl {
         private String id;
 
         private TestUserService(String id) {
@@ -175,6 +162,41 @@ public class UserServiceTest {
     }
 
     static class TestUserServiceException extends RuntimeException {
+    }
+
+    static class MockUserDao implements UserDao {
+        private List<User> users;   //레벨 업그레이드 후보 User 오브젝트 목록
+        private List<User> updated = new ArrayList();   //업그레이드 대상 오브젝트를 저장해둘 목록
+
+        private MockUserDao(List<User> users) {
+            this.users = users;
+        }
+
+        public List<User> getUpdated() {
+            return this.updated;
+        }
+
+        //스텁 기능 제공
+        @Override
+        public List<User> getAllUsers() {
+            return this.users;
+        }
+
+        //목 오브젝트 기능 제공
+        @Override
+        public void updateUser(User user) {
+            updated.add(user);
+        }
+
+        //사용되지 않는 메소드들
+        @Override
+        public void addUser(User user) { throw new UnsupportedOperationException(); }
+        @Override
+        public User getUser(String id) { throw new UnsupportedOperationException(); }
+        @Override
+        public void deleteAll() { throw new UnsupportedOperationException(); }
+        @Override
+        public int getCount() { throw new UnsupportedOperationException(); }
     }
 
     static class MockMailSender implements MailSender {
