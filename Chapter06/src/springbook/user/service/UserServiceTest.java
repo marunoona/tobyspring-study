@@ -1,5 +1,6 @@
 package springbook.user.service;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,31 +60,32 @@ public class UserServiceTest {
         );
     }
 
+    //MockUserDao를 사용해서 만든 고립된 테스트
     @Test
     public void upgradeLevels() {
-        userDao.deleteAll();
-        for (User user : users) userDao.addUser(user);
+        //고립된 테스트에서는 테스트 대상 오브젝트를 직접 생성하면 된다.
+        UserServiceImpl userServiceImpl = new UserServiceImpl();
 
-        //메일 발송 결과를 테스트할 수 있도록 목 오브젝트를 만들어
-        //UserService의 의존 오브젝트로 주입해준다.
+        //목 오브젝트로 만든 UserDao를 직접 DI 해준다.
+        MockUserDao mockUserDao = new MockUserDao(this.users);
+        userServiceImpl.setUserDao(mockUserDao);
+
         MockMailSender mockMailSender = new MockMailSender();
         userServiceImpl.setMailSender(mockMailSender);
 
-        //업그레이드 테스트. 메일 발송이 일어나면
-        //MockMailSender 오브젝트의 리스트에 그 결과가 저장된다.
-        userService.upgradeLevels();
-        checkLevelUpgraded(users.get(0), false);
-        checkLevelUpgraded(users.get(1), true);
-        checkLevelUpgraded(users.get(2), false);
-        checkLevelUpgraded(users.get(3), true);
-        checkLevelUpgraded(users.get(4), false);
+        userServiceImpl.upgradeLevels();
 
-        //목 오브젝트에 저장된 메일 수신자 목록을 가져와서
-        //업그레이드 대상과 일치하는지 확인한다.
+        //MockuserDao로부터 업데이트 결과를 가져온다.
+        List<User> updated = mockUserDao.getUpdated();
+        //업데이트 횟수와 정보는 확인한다.
+        assertThat(updated.size(), CoreMatchers.is(2));
+        checkUserAndLevel(updated.get(0), "joytouch", Level.SILVER);
+        checkUserAndLevel(updated.get(1), "madnite1", Level.GOLD);
+
         List<String> request = mockMailSender.getRequest();
-        assertThat(request.size(), is(2));
-        assertThat(request.get(0), is(users.get(1).getEmail()));
-        assertThat(request.get(1), is(users.get(3).getEmail()));
+        assertThat(request.size(), CoreMatchers.is(2));
+        assertThat(request.get(0), CoreMatchers.is(users.get(1).getEmail()));
+        assertThat(request.get(1), CoreMatchers.is(users.get(3).getEmail()));
     }
 
     @Test
@@ -103,6 +105,17 @@ public class UserServiceTest {
 
         assertThat(userWithLevelRead.getLevel(), is(userWithLevel.getLevel()));
         assertThat(userWithoutLevelRead.getLevel(), is(Level.BASIC));
+    }
+
+    /**
+     * Id와 Level을 확인하는 간단한 헬퍼 메소드
+     * @param updated
+     * @param expectedId
+     * @param expectedLevel
+     */
+    private void checkUserAndLevel(User updated, String expectedId, Level expectedLevel) {
+        assertThat(updated.getId(), CoreMatchers.is(expectedId));
+        assertThat(updated.getLevel(), CoreMatchers.is(expectedLevel));
     }
 
     /**
