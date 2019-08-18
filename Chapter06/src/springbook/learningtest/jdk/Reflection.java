@@ -1,4 +1,4 @@
-package springbook.learningtest;
+package springbook.learningtest.jdk;
 
 import org.junit.Test;
 
