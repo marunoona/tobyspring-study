@@ -4,6 +4,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSender;
@@ -23,6 +24,9 @@ import java.util.List;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 import static springbook.user.service.UserServiceImpl.MIN_LOGCOUNT_FOR_SILVER;
 import static springbook.user.service.UserServiceImpl.MIN_RECCOMEND_FOR_GOLD;
 
@@ -109,6 +113,7 @@ public class UserServiceTest {
 
     /**
      * Id와 Level을 확인하는 간단한 헬퍼 메소드
+     *
      * @param updated
      * @param expectedId
      * @param expectedLevel
@@ -203,13 +208,24 @@ public class UserServiceTest {
 
         //사용되지 않는 메소드들
         @Override
-        public void addUser(User user) { throw new UnsupportedOperationException(); }
+        public void addUser(User user) {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
-        public User getUser(String id) { throw new UnsupportedOperationException(); }
+        public User getUser(String id) {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
-        public void deleteAll() { throw new UnsupportedOperationException(); }
+        public void deleteAll() {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
-        public int getCount() { throw new UnsupportedOperationException(); }
+        public int getCount() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     static class MockMailSender implements MailSender {
@@ -230,7 +246,42 @@ public class UserServiceTest {
 
         @Override
         public void send(SimpleMailMessage... simpleMailMessages) throws MailException {
-
         }
+    }
+
+    /**
+     * Mockito 사용
+     *
+     * @throws Exception
+     */
+    @Test
+    public void mockUpgradedLevels() throws Exception {
+        UserServiceImpl userServiceImpl = new UserServiceImpl();
+
+        UserDao mockUserDao = mock(UserDao.class);
+        when(mockUserDao.getAllUsers()).thenReturn(this.users);
+        userServiceImpl.setUserDao(mockUserDao);
+
+        MailSender mockMailSender = mock(MailSender.class);
+        userServiceImpl.setMailSender(mockMailSender);
+
+        userServiceImpl.upgradeLevels();
+
+        //목 오브젝트가 제공하는 검증 기능을 통해서
+        //어떤 메소드가 몇 번 호출됐는지, 파라미터는 무엇인지 확인할 수 있다.
+        verify(mockUserDao, times(2)).updateUser(any(User.class));
+        verify(mockUserDao, times(2)).updateUser(any(User.class));
+        verify(mockUserDao).updateUser(users.get(1));
+        assertThat(users.get(1).getLevel(), CoreMatchers.is(Level.SILVER));
+        verify(mockUserDao).updateUser(users.get(3));
+        assertThat(users.get(3).getLevel(), CoreMatchers.is(Level.GOLD));
+
+        ArgumentCaptor<SimpleMailMessage> mailMessageArg =
+                ArgumentCaptor.forClass(SimpleMailMessage.class);
+        verify(mockMailSender, times(2)).send(mailMessageArg.capture());
+        List<SimpleMailMessage> mailMessages = mailMessageArg.getAllValues();
+        assertThat(mailMessages.get(0).getTo()[0], is(users.get(1).getEmail()));
+        assertThat(mailMessages.get(1).getTo()[0], is(users.get(3).getEmail()));
+
     }
 }
