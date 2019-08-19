@@ -18,7 +18,6 @@ import springbook.user.dao.UserDao;
 import springbook.user.domain.Level;
 import springbook.user.domain.User;
 
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -153,13 +152,6 @@ public class UserServiceTest {
         testUserService.setUserDao(this.userDao);
         testUserService.setMailSender(this.mailSender);
 
-        //팩토리 빈 사용
-        //팩토리 빈 자체를 가져와야 하므로 빈 이름에 &를 반드시 넣어줘야함
-        TxProxyFactoryBean txProxyFactoryBean =
-                context.getBean("&userService", TxProxyFactoryBean.class);
-        txProxyFactoryBean.setTarget(testUserService);
-        UserService txUserService = (UserService)txProxyFactoryBean.getObject();
-
         /*TransactionHandler txHandler = new TransactionHandler();
         txHandler.setTarget(testUserService);
         txHandler.setTransactionManager(transactionManager);
@@ -172,6 +164,13 @@ public class UserServiceTest {
         //UserServiceTx txUserService = new UserServiceTx();
         //txUserService.setTransactionManager(transactionManager);
         //txUserService.setUserService(testUserService);
+
+        //팩토리 빈 사용
+        //팩토리 빈 자체를 가져와야 하므로 빈 이름에 &를 반드시 넣어줘야함
+        TxProxyFactoryBean txProxyFactoryBean =
+                context.getBean("&userService", TxProxyFactoryBean.class);
+        txProxyFactoryBean.setTarget(testUserService);
+        UserService txUserService = (UserService)txProxyFactoryBean.getObject();
 
         userDao.deleteAll();
         for (User user : users) userDao.addUser(user);
