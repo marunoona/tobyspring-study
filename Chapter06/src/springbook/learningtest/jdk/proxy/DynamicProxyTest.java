@@ -1,6 +1,9 @@
 package springbook.learningtest.jdk.proxy;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
+import org.springframework.aop.framework.ProxyFactoryBean;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -25,13 +28,35 @@ public class DynamicProxyTest {
         //Hello 타입으로 캐스팅해도 안전하다
         Hello proxiedHello = (Hello) Proxy.newProxyInstance(
                 getClass().getClassLoader(),    //동적으로 생성되는 다이나믹 프록시 클래스의 로딩에 사용할 클래스 로더
-                new Class[] { Hello.class},     //구현할 인터페이스
+                new Class[]{Hello.class},     //구현할 인터페이스
                 new UppercaseHandler(new HelloTarget()));   //부가기능과 위임 코드를 담은 InvocationHandler
 
         assertThat(proxiedHello.sayHello("Toby"), is("HELLO TOBY"));
         assertThat(proxiedHello.sayHi("Toby"), is("HI TOBY"));
         assertThat(proxiedHello.sayThankYou("Toby"), is("THANK YOU TOBY"));
 
+    }
+
+    @Test
+    public void proxyFactoryBean() {
+        ProxyFactoryBean pfBean = new ProxyFactoryBean();
+        pfBean.setTarget(new HelloTarget());    //타켓 설정
+        pfBean.addAdvice(new UppercaseAdvice());    //부가기능을 담은 어드바이스 추가
+
+        Hello proxiedHello = (Hello) pfBean.getObject(); //FactoryBean이므로 getObject()로 생성된 프록시를 가져옴
+
+        assertThat(proxiedHello.sayHello("Toby"), is("HELLO TOBY"));
+        assertThat(proxiedHello.sayHi("Toby"), is("HI TOBY"));
+        assertThat(proxiedHello.sayThankYou("Toby"), is("THANK YOU TOBY"));
+    }
+
+    static class UppercaseAdvice implements MethodInterceptor {
+        public Object invoke(MethodInvocation invocation) throws Throwable {
+            //리플렉션의 Method와 달리 메소드 실행 시 타겟 오브젝트를 전달할 필요가 없다.
+            //MethodInvocation은 메소드 정보와 함께 타겟 오브젝트를 알고있기 때문이다.
+            String ret = (String) invocation.proceed();
+            return ret.toUpperCase();
+        }
     }
 
     //이렇게 만들면 인터페이스의 모든 메소드를 구현해 위임하도록 해야하며
@@ -71,9 +96,8 @@ public class DynamicProxyTest {
             Object ret = method.invoke(target, args);
             //리턴타입과 메소드 이름이 일치하는 경우에만 부가기능을 적용한다.
             if (ret instanceof String && method.getName().startsWith("say")) {
-                return ((String)ret).toUpperCase();
-            }
-            else {
+                return ((String) ret).toUpperCase();
+            } else {
                 return ret;
             }
         }
@@ -81,7 +105,9 @@ public class DynamicProxyTest {
 
     static interface Hello {
         String sayHello(String name);
+
         String sayHi(String name);
+
         String sayThankYou(String name);
     }
 

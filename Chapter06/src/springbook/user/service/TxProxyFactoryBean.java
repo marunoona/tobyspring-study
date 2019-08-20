@@ -30,6 +30,11 @@ public class TxProxyFactoryBean implements FactoryBean<Object> {
         this.serviceInterface = serviceInterface;
     }
 
+    /**
+     * DI받은 정보를 이용해서 TransactionHandler를 사용하는 다이나믹 프록시를 생성
+     * @return
+     * @throws Exception
+     */
     @Override
     public Object getObject() throws Exception {
         TransactionHandler txHandler = new TransactionHandler();
