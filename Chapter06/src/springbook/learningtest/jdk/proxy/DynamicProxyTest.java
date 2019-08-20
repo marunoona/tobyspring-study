@@ -4,6 +4,8 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.springframework.aop.framework.ProxyFactoryBean;
+import org.springframework.aop.support.DefaultPointcutAdvisor;
+import org.springframework.aop.support.NameMatchMethodPointcut;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -40,13 +42,36 @@ public class DynamicProxyTest {
     @Test
     public void proxyFactoryBean() {
         ProxyFactoryBean pfBean = new ProxyFactoryBean();
-        pfBean.setTarget(new HelloTarget());    //타켓 설정
-        pfBean.addAdvice(new UppercaseAdvice());    //부가기능을 담은 어드바이스 추가
+        //타켓 설정
+        pfBean.setTarget(new HelloTarget());
+        //부가기능을 담은 어드바이스 추가
+        //여러개 추가 가능
+        pfBean.addAdvice(new UppercaseAdvice());
 
         Hello proxiedHello = (Hello) pfBean.getObject(); //FactoryBean이므로 getObject()로 생성된 프록시를 가져옴
 
         assertThat(proxiedHello.sayHello("Toby"), is("HELLO TOBY"));
         assertThat(proxiedHello.sayHi("Toby"), is("HI TOBY"));
+        assertThat(proxiedHello.sayThankYou("Toby"), is("THANK YOU TOBY"));
+    }
+
+    @Test
+    public void pointcutAdvisor(){
+        ProxyFactoryBean pfBean = new ProxyFactoryBean();
+        //타켓 설정
+        pfBean.setTarget(new HelloTarget());
+
+        //메소드 이름을 비교해서 대상을 선정하는 알고리즘을 제공하는 포인트컷 생성
+        NameMatchMethodPointcut pointcut = new NameMatchMethodPointcut();
+        //이름 비교조건 설정
+        pointcut.setMappedName("sayH*");
+
+        pfBean.addAdvisor(new DefaultPointcutAdvisor(pointcut, new UppercaseAdvice()));
+
+        Hello proxiedHello = (Hello) pfBean.getObject(); //FactoryBean이므로 getObject()로 생성된 프록시를 가져옴
+
+        assertThat(proxiedHello.sayHello("Toby"), is("HELLO TOBY"));
+        //메소드 이름이 포인트컷의 선정조건에 맞지 않으므로, 부가기능이 적용되지 않음
         assertThat(proxiedHello.sayThankYou("Toby"), is("THANK YOU TOBY"));
     }
 
