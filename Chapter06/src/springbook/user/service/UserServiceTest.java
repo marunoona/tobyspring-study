@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mail.MailException;
@@ -167,8 +168,14 @@ public class UserServiceTest {
 
         //팩토리 빈 사용
         //팩토리 빈 자체를 가져와야 하므로 빈 이름에 &를 반드시 넣어줘야함
-        TxProxyFactoryBean txProxyFactoryBean =
+        /*TxProxyFactoryBean txProxyFactoryBean =
                 context.getBean("&userService", TxProxyFactoryBean.class);
+        txProxyFactoryBean.setTarget(testUserService);
+        UserService txUserService = (UserService)txProxyFactoryBean.getObject();*/
+
+        //ProxyFactoryBean 사용
+        ProxyFactoryBean txProxyFactoryBean = context.getBean("&userService",
+                ProxyFactoryBean.class);
         txProxyFactoryBean.setTarget(testUserService);
         UserService txUserService = (UserService)txProxyFactoryBean.getObject();
 
