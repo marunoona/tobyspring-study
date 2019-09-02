@@ -159,7 +159,7 @@ public class UserServiceTest {
     }
 
 
-    static class TestUserServiceImpl extends UserServiceImpl {
+    static class TestUserService extends UserServiceImpl {
         private String id = "madnite1";
 
         protected void upgradeLevel(User user) {

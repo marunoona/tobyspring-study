@@ -23,9 +23,13 @@
         <property name="transactionManager" ref="transactionManager" />
     </bean>
 
-    <bean id="transactionPointcut" class="springbook.user.service.NameMatchClassMethodPointcut">
-        <property name="mappedClassName" value="*ServiceImpl" />
-        <property name="mappedName" value="upgrade*" />
+    <!--<bean id="transactionPointcut" class="springbook.user.service.NameMatchClassMethodPointcut">-->
+        <!--<property name="mappedClassName" value="*ServiceImpl" />-->
+        <!--<property name="mappedName" value="upgrade*" />-->
+    <!--</bean>-->
+
+    <bean id="transactionPointcut" class="org.springframework.aop.aspectj.AspectJExpressionPointcut">
+        <property name="expression" value="execution(* *..*ServiceImpl.upgrade*(..))" />
     </bean>
 
     <bean id="transactionAdvisor" class="org.springframework.aop.support.DefaultPointcutAdvisor">
@@ -46,7 +50,7 @@
     <!--테스트 용-->
     <!--스태틱 클래스는 $로 지정함-->
     <!--parent 지정은 userService 빈의 모든 설정을 그대로 가져와서 사용하겠다는 뜻-->
-    <bean id="testUserService" class="springbook.user.service.UserServiceTest$TestUserServiceImpl"
+    <bean id="testUserService" class="springbook.user.service.UserServiceTest$TestUserService"
           parent="userService"/>
 
     <bean id="mailSender" class="springbook.user.service.DummyMailSender"/>
