@@ -11,30 +11,27 @@
         <property name="username" value="marunoona"/>
         <property name="password" value="maru1"/>
     </bean>
-
     <bean id="transactionManager"
           class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
+    <!-- aop -->
     <bean id="transactionAdvice" class="springbook.user.service.TransactionAdvice">
         <property name="transactionManager" ref="transactionManager"/>
     </bean>
-
     <bean id="transactionPointcut" class="org.springframework.aop.support.NameMatchMethodPointcut">
         <property name="mappedName" value="upgrade*"/>
     </bean>
-
     <bean id="transactionAdvisor" class="org.springframework.aop.support.DefaultPointcutAdvisor">
         <property name="advice" ref="transactionAdvice"/>
         <property name="pointcut" ref="transactionPointcut"/>
     </bean>
 
+    <!-- application components -->
     <bean id="userDao" class="springbook.user.dao.UserDaoJdbc">
         <property name="dataSource" ref="dataSource"/>
     </bean>
-
-    <!--데코레이터-->
     <bean id="userService" class="org.springframework.aop.framework.ProxyFactoryBean">
         <property name="target" ref="userServiceImpl"/>
         <property name="interceptorNames">
@@ -43,8 +40,6 @@
             </list>
         </property>
     </bean>
-
-    <!--타깃-->
     <bean id="userServiceImpl" class="springbook.user.service.UserServiceImpl">
         <property name="userDao" ref="userDao"/>
         <property name="mailSender" ref="mailSender"/>
