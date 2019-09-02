@@ -5,13 +5,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -38,9 +36,9 @@ public class UserServiceTest {
     @Autowired
     UserService userService;
     @Autowired
-    UserDao userDao;
+    UserService testUserService;
     @Autowired
-    UserServiceImpl userServiceImpl;
+    UserDao userDao;
     @Autowired
     MailSender mailSender;
     @Autowired
@@ -147,43 +145,12 @@ public class UserServiceTest {
     }
 
     @Test
-    @DirtiesContext
     public void upgradeAllOrNothing() throws Exception {
-        TestUserService testUserService = new TestUserService(users.get(3).getId());
-        testUserService.setUserDao(this.userDao);
-        testUserService.setMailSender(this.mailSender);
-
-        /*TransactionHandler txHandler = new TransactionHandler();
-        txHandler.setTarget(testUserService);
-        txHandler.setTransactionManager(transactionManager);
-        txHandler.setPattern("upgradeLevels");
-
-        //UserService 인터페이스 타입의 다이나믹 프록시 생성
-        UserService txUserService = (UserService) Proxy.newProxyInstance(
-                getClass().getClassLoader(), new Class[]{UserService.class}, txHandler);*/
-
-        //UserServiceTx txUserService = new UserServiceTx();
-        //txUserService.setTransactionManager(transactionManager);
-        //txUserService.setUserService(testUserService);
-
-        //팩토리 빈 사용
-        //팩토리 빈 자체를 가져와야 하므로 빈 이름에 &를 반드시 넣어줘야함
-        /*TxProxyFactoryBean txProxyFactoryBean =
-                context.getBean("&userService", TxProxyFactoryBean.class);
-        txProxyFactoryBean.setTarget(testUserService);
-        UserService txUserService = (UserService)txProxyFactoryBean.getObject();*/
-
-        //ProxyFactoryBean 사용
-        ProxyFactoryBean txProxyFactoryBean = context.getBean("&userService",
-                ProxyFactoryBean.class);
-        txProxyFactoryBean.setTarget(testUserService);
-        UserService txUserService = (UserService)txProxyFactoryBean.getObject();
-
         userDao.deleteAll();
         for (User user : users) userDao.addUser(user);
 
         try {
-            txUserService.upgradeLevels();
+            this.testUserService.upgradeLevels();
             fail("TestUserServiceException expected");
         } catch (TestUserServiceException e) {
         }
@@ -192,12 +159,8 @@ public class UserServiceTest {
     }
 
 
-    static class TestUserService extends UserServiceImpl {
-        private String id;
-
-        private TestUserService(String id) {
-            this.id = id;
-        }
+    static class TestUserServiceImpl extends UserServiceImpl {
+        private String id = "madnite1";
 
         protected void upgradeLevel(User user) {
             if (user.getId().equals(this.id)) throw new TestUserServiceException();
